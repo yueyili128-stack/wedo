@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>WEDO Connect</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1A56FF;
+    --blue-light: #EEF2FF;
+    --green: #10B981;
+    --green-light: #ECFDF5;
+    --purple: #8B5CF6;
+    --purple-light: #F5F3FF;
+    --orange: #F59E0B;
+    --orange-light: #FFFBEB;
+    --red: #EF4444;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    --border: #E5E7EB;
+    --bg: #F9FAFB;
+    --white: #FFFFFF;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .phone-wrapper {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: #111;
+    border-radius: 54px;
+    padding: 12px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1), inset 0 0 0 2px #222;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--white);
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .notch {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 126px; height: 34px;
+    background: #111;
+    border-radius: 0 0 20px 20px;
+    z-index: 100;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    position: relative;
+    z-index: 10;
+  }
+
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons svg { width: 16px; height: 16px; }
+
+  /* SCREENS */
+  .screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--white);
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .screen.active {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .screen-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .screen-scroll::-webkit-scrollbar { display: none; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    display: flex;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    padding: 8px 0 16px;
+    position: relative;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: all 0.2s;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .nav-item svg { width: 22px; height: 22px; transition: all 0.2s; }
+  .nav-item.active { color: var(--blue); }
+  .nav-item.active svg { transform: scale(1.1); }
+
+  /* HOME SCREEN */
+  .home-header {
+    padding: 48px 20px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .home-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1;
+  }
+  .home-logo span { color: var(--text-primary); display: block; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; }
+
+  .header-actions { display: flex; gap: 12px; align-items: center; }
+
+  .avatar-sm {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: white;
+    cursor: pointer;
+  }
+
+  .notif-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .notif-dot {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+
+  .greeting {
+    padding: 0 20px 16px;
+  }
+
+  .greeting h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .greeting p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+  .search-bar {
+    margin: 0 20px 20px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1.5px solid var(--border);
+    cursor: text;
+  }
+
+  .search-bar span { font-size: 14px; color: var(--text-tertiary); flex: 1; }
+
+  /* Hero Banner */
+  .hero-banner {
+    margin: 0 20px 24px;
+    background: linear-gradient(135deg, #1A56FF 0%, #4f46e5 100%);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .hero-banner:active { transform: scale(0.98); }
+  .hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+
+  .hero-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .hero-banner h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .hero-banner p { font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 16px; line-height: 1.5; }
+
+  .btn-white {
+    background: white;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 10px;
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .btn-white:active { transform: scale(0.96); }
+
+  /* Section */
+  .section { padding: 0 20px 24px; }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Fraunces', serif;
+  }
+
+  .see-all {
+    font-size: 13px;
+    color: var(--blue);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Quick Access */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .quick-item {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid var(--border);
+  }
+  .quick-item:active { transform: scale(0.94); background: var(--blue-light); }
+
+  .quick-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .quick-item span { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-align: center; line-height: 1.3; }
+
+  /* Event Card */
+  .event-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .event-card:active { transform: scale(0.98); box-shadow: var(--shadow-md); }
+
+  .event-img {
+    height: 160px;
+    background: linear-gradient(135deg, #0f2167, #1a3a8f);
+    position: relative;
+    display: flex; align-items: flex-end;
+    padding: 16px;
+  }
+
+  .event-date-badge {
+    position: absolute;
+    top: 16px; left: 16px;
+    background: var(--blue);
+    color: white;
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .event-body { padding: 16px; }
+  .event-tag { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .event-body h3 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
+  .event-meta { display: flex; flex-direction: column; gap: 4px; }
+  .event-meta-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+  .event-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .attendees { display: flex; align-items: center; gap: 8px; }
+  .avatar-stack { display: flex; }
+  .avatar-stack .av { width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; margin-left: -6px; background: linear-gradient(135deg, #667eea, #764ba2); }
+  .avatar-stack .av:first-child { margin-left: 0; }
+  .attendees span { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .btn-bookmark { width: 34px; height: 34px; border-radius: 8px; background: var(--bg); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* Mentor Cards */
+  .mentors-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .mentors-scroll::-webkit-scrollbar { display: none; }
+
+  .mentor-card-sm {
+    background: white;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 16px;
+    min-width: 160px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .mentor-card-sm:active { transform: scale(0.96); }
+
+  .mentor-card-sm .match-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--green);
+    background: var(--green-light);
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+
+  .mentor-card-sm .av-lg {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: white; font-size: 18px;
+  }
+
+  .mentor-card-sm h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .mentor-card-sm p { font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 10px; }
+
+  .tag-chip {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--blue);
+    background: var(--blue-light);
+    padding: 3px 8px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  .btn-view {
+    width: 100%;
+    border: 1.5px solid var(--blue);
+    color: var(--blue);
+    background: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-view:active { background: var(--blue); color: white; }
+
+  /* Community Feed */
+  .community-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .feed-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .feed-item {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .feed-item:active { background: var(--bg); }
+
+  .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .feed-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #f093fb, #f5576c); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 12px; }
+  .feed-av.av2 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .feed-av.av3 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .feed-name { font-size: 13px; font-weight: 700; }
+  .feed-time { font-size: 11px; color: var(--text-tertiary); }
+
+  .feed-topic { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; line-height: 1.4; }
+
+  .feed-tag {
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .feed-tag.discussion { background: var(--purple-light); color: var(--purple); }
+  .feed-tag.resource { background: var(--green-light); color: var(--green); }
+
+  .feed-stats { display: flex; gap: 14px; }
+  .feed-stat { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+
+  /* Trending */
+  .trending-list { display: flex; flex-direction: column; gap: 10px; }
+  .trending-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg);
+    border-radius: var(--radius-xs);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .trending-item:active { background: var(--blue-light); }
+  .trending-icon { width: 32px; height: 32px; border-radius: 8px; background: white; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .trending-info { flex: 1; }
+  .trending-info h5 { font-size: 13px; font-weight: 700; }
+  .trending-info p { font-size: 11px; color: var(--text-secondary); }
+  .trending-arrow { color: var(--red); font-size: 16px; }
+  .trending-arrow.up { color: var(--green); }
+
+  /* AI Coach Floating */
+  .ai-coach-banner {
+    margin: 0 20px 24px;
+    background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1.5px solid rgba(26,86,255,0.15);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ai-coach-banner:active { transform: scale(0.98); }
+  .ai-icon { width: 40px; height: 40px; background: var(--blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ai-coach-banner .text { flex: 1; }
+  .ai-coach-banner .text h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .ai-coach-banner .text p { font-size: 12px; color: var(--text-secondary); }
+  .btn-ask {
+    background: var(--blue);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    border: none;
+  }
+
+  /* ========= EVENTS SCREEN ========= */
+  .screen-header {
+    padding: 48px 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .back-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .screen-header .title-block { flex: 1; }
+  .screen-header h1 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
+  .screen-header p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .header-btns { display: flex; gap: 8px; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 10px; background: var(--bg); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* Filter tabs */
+  .filter-tabs { padding: 0 20px 16px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--text-secondary);
+  }
+  .tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .tab:active { transform: scale(0.95); }
+
+  /* Featured event */
+  .featured-event {
+    margin: 0 20px 24px;
+    background: linear-gradient(170deg, #0f172a 0%, #1e3a8a 100%);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+    position: relative;
+  }
+  .featured-event:active { transform: scale(0.98); }
+  .featured-event-inner { padding: 24px; }
+  .featured-tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 12px; }
+  .featured-event h2 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: white; line-height: 1.2; margin-bottom: 16px; }
+  .featured-meta { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .featured-meta-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.7); }
+  .featured-attending { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .featured-attending span { font-size: 13px; color: rgba(255,255,255,0.7); }
+  .featured-btns { display: flex; gap: 10px; }
+  .btn-rsvp { background: var(--blue); color: white; font-size: 13px; font-weight: 700; padding: 11px 20px; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; border: none; }
+  .btn-details { background: rgba(255,255,255,0.12); color: white; font-size: 13px; font-weight: 700; padding: 11px 20px; border-radius: 10px; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.2); font-family: 'DM Sans', sans-serif; }
+
+  /* Stats bar */
+  .stats-bar {
+    margin: 0 20px 24px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    border: 1.5px solid var(--border);
+  }
+  .stat-item { flex: 1; text-align: center; }
+  .stat-item:not(:last-child) { border-right: 1px solid var(--border); }
+  .stat-item h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--blue); }
+  .stat-item p { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Upcoming events list */
+  .event-list-item {
+    display: flex;
+    gap: 14px;
+    background: white;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 12px;
+  }
+  .event-list-item:active { transform: scale(0.98); background: var(--bg); }
+
+  .event-list-img {
+    width: 100px;
+    background: linear-gradient(135deg, #1e3a8a, #312e81);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .event-list-img .date-overlay {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: var(--blue);
+    color: white;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-weight: 800;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .event-list-body { flex: 1; padding: 14px 14px 14px 0; }
+  .event-list-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+  .event-list-body p { font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 8px; }
+  .event-list-meta { font-size: 11px; color: var(--text-secondary); }
+  .event-list-meta span { display: flex; align-items: center; gap: 4px; }
+  .event-list-actions { display: flex; gap: 6px; align-items: center; padding-right: 14px; padding-bottom: 14px; }
+  .btn-rsvp-sm {
+    background: var(--blue);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-rsvp-sm:active { opacity: 0.8; }
+
+  /* People scroll */
+  .people-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .people-scroll::-webkit-scrollbar { display: none; }
+  .person-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    min-width: 130px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .person-card:active { transform: scale(0.95); }
+  .person-av { width: 52px; height: 52px; border-radius: 50%; margin: 0 auto 10px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 18px; }
+  .person-av.c2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .person-av.c3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .person-av.c4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .person-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .person-card p { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.3; }
+  .attending-badge { font-size: 10px; font-weight: 700; color: var(--green); background: var(--green-light); padding: 2px 8px; border-radius: 20px; display: inline-block; }
+
+  /* Recommended categories */
+  .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .category-item {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .category-item:active { background: var(--blue-light); border-color: var(--blue); }
+  .category-item .cat-icon { font-size: 22px; margin-bottom: 8px; }
+  .category-item h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .category-item p { font-size: 11px; color: var(--text-secondary); }
+
+  /* ========= MENTORS SCREEN ========= */
+  .profile-summary {
+    margin: 0 20px 20px;
+    background: var(--blue);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+  }
+  .profile-summary-icon { width: 42px; height: 42px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .profile-summary-text { flex: 1; }
+  .profile-summary-text h4 { font-size: 14px; font-weight: 700; color: white; margin-bottom: 4px; }
+  .profile-summary-text p { font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.4; }
+  .profile-summary-edit { font-size: 13px; font-weight: 700; color: white; display: flex; align-items: center; gap: 4px; }
+
+  /* Mentor full card */
+  .mentor-full-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mentor-full-card:active { transform: scale(0.98); }
+
+  .mentor-card-header { padding: 20px; display: flex; gap: 16px; align-items: flex-start; }
+  .mentor-av { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: white; }
+  .mentor-av.m2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .mentor-av.m3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .online-dot { position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: var(--green); border-radius: 50%; border: 2px solid white; }
+  .mentor-info { flex: 1; }
+  .verified-badge { display: inline-flex; align-items: center; gap: 4px; }
+  .mentor-info h3 { font-size: 17px; font-weight: 700; }
+  .mentor-info .role { font-size: 13px; color: var(--text-secondary); margin: 4px 0; }
+  .mentor-info .meta-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 11px; font-weight: 600; color: var(--blue); background: var(--blue-light); padding: 3px 10px; border-radius: 20px; }
+
+  .match-score-block { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .match-pill { font-size: 11px; font-weight: 700; color: var(--green); background: var(--green-light); padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .score-circle { width: 64px; height: 64px; position: relative; }
+  .score-circle svg { transform: rotate(-90deg); }
+  .score-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15px; font-weight: 800; color: var(--green); }
+  .score-label { font-size: 10px; color: var(--text-tertiary); text-align: center; }
+
+  .mentor-quote {
+    margin: 0 20px;
+    background: var(--bg);
+    border-radius: var(--radius-xs);
+    padding: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    position: relative;
+  }
+  .mentor-quote::before { content: '"'; font-family: 'Fraunces', serif; font-size: 36px; color: var(--blue); position: absolute; top: -8px; left: 12px; line-height: 1; }
+
+  .mentor-card-actions { padding: 16px 20px 20px; display: flex; gap: 10px; }
+  .btn-message {
+    flex: 1;
+    background: white;
+    border: 1.5px solid var(--border);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-message:active { background: var(--bg); }
+  .btn-connect {
+    flex: 1;
+    background: var(--blue);
+    border: none;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-connect:active { opacity: 0.85; }
+
+  .ai-match-info {
+    margin: 0 20px 24px;
+    background: var(--blue-light);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .ai-match-info .ai-icon-sm { width: 40px; height: 40px; background: var(--blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ai-match-info .text { flex: 1; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+  .ai-match-info .text a { color: var(--blue); font-weight: 600; text-decoration: none; }
+
+  /* ========= AI COACH SCREEN ========= */
+  .chat-area { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; scrollbar-width: none; }
+  .chat-area::-webkit-scrollbar { display: none; }
+
+  .bot-msg { display: flex; gap: 10px; align-items: flex-start; }
+  .bot-avatar { width: 36px; height: 36px; background: var(--blue-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .bot-bubble { background: white; border: 1.5px solid var(--border); border-radius: 4px 16px 16px 16px; padding: 14px 16px; max-width: 88%; font-size: 14px; line-height: 1.6; color: var(--text-primary); }
+  .bot-time { font-size: 11px; color: var(--text-tertiary); margin-top: 6px; }
+
+  .user-msg { display: flex; justify-content: flex-end; }
+  .user-bubble { background: var(--blue); color: white; border-radius: 16px 4px 16px 16px; padding: 12px 16px; max-width: 80%; font-size: 14px; line-height: 1.6; }
+  .user-time { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 6px; text-align: right; }
+
+  .step-list { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .step-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: white; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-list li strong { display: block; font-weight: 700; margin-bottom: 2px; }
+
+  .try-section { padding: 0 20px 16px; }
+  .try-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  .try-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .try-item {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .try-item:active { background: var(--blue-light); border-color: var(--blue); }
+  .try-icon { font-size: 20px; }
+  .try-text h5 { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .try-text p { font-size: 11px; color: var(--text-secondary); }
+
+  .chat-input-bar { padding: 12px 20px 8px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+  .chat-input { flex: 1; background: var(--bg); border: 1.5px solid var(--border); border-radius: 24px; padding: 12px 16px; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; color: var(--text-primary); }
+  .chat-input::placeholder { color: var(--text-tertiary); }
+  .send-btn { width: 44px; height: 44px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; flex-shrink: 0; transition: all 0.2s; }
+  .send-btn:active { transform: scale(0.9); }
+  .mic-btn { width: 36px; height: 36px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  .disclaimer { padding: 4px 20px 8px; text-align: center; font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+  /* ========= PROFILE SCREEN ========= */
+  .profile-header { padding: 48px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .profile-header h1 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
+
+  .profile-card {
+    margin: 0 20px 20px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .profile-top { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+  .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: white; }
+  .cam-badge { position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; background: var(--blue); border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; }
+  .profile-info { flex: 1; }
+  .profile-info h2 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
+  .profile-info .role { font-size: 13px; color: var(--text-secondary); margin: 4px 0; }
+  .profile-info .location { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+  .profile-info .link { font-size: 12px; color: var(--blue); display: flex; align-items: center; gap: 4px; }
+  .edit-btn { font-size: 13px; font-weight: 700; color: var(--blue); cursor: pointer; }
+  .profile-bio { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; }
+  .interest-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .interest-tag { font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--bg); border: 1.5px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+
+  .profile-strength {
+    margin: 0 20px 20px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .strength-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .strength-header h4 { font-size: 15px; font-weight: 700; }
+  .strength-pct { font-size: 15px; font-weight: 800; color: var(--blue); }
+  .strength-bar { height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+  .strength-fill { height: 100%; background: linear-gradient(90deg, var(--blue), #6366f1); border-radius: 10px; width: 85%; }
+  .strength-tip { font-size: 12px; color: var(--text-secondary); }
+
+  .stats-row { margin: 0 20px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat-box {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .stat-box:active { background: var(--blue-light); }
+  .stat-box .stat-icon { font-size: 20px; margin-bottom: 6px; }
+  .stat-box h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .stat-box p { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
+  .stat-box .delta { font-size: 10px; font-weight: 700; color: var(--green); }
+
+  .menu-list { margin: 0 20px 20px; background: white; border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .menu-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:active { background: var(--bg); }
+  .menu-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .menu-text { flex: 1; }
+  .menu-text h4 { font-size: 14px; font-weight: 700; }
+  .menu-text p { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .menu-arrow { color: var(--text-tertiary); }
+
+  .upgrade-banner {
+    margin: 0 20px 32px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+    border: 1.5px solid rgba(245, 158, 11, 0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .upgrade-banner:active { transform: scale(0.98); }
+  .crown-icon { font-size: 36px; flex-shrink: 0; }
+  .upgrade-text { flex: 1; }
+  .upgrade-text h4 { font-size: 14px; font-weight: 700; color: #92400e; }
+  .upgrade-text p { font-size: 12px; color: #b45309; margin-top: 4px; line-height: 1.4; }
+  .btn-upgrade {
+    background: #f59e0b;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .btn-upgrade:active { opacity: 0.85; }
+
+  /* Toast notification */
+  .toast {
+    position: absolute;
+    bottom: 100px; left: 20px; right: 20px;
+    background: #1f2937;
+    color: white;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 200;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast-icon { font-size: 18px; }
+
+  /* Typing animation */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+  .dot { width: 8px; height: 8px; background: var(--text-tertiary); border-radius: 50%; animation: bounce 1.2s infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+
+  .join-link { padding: 4px 20px 8px; text-align: center; font-size: 12px; color: var(--text-secondary); }
+  .join-link a { color: var(--blue); font-weight: 700; text-decoration: none; }
+
+  .section-pb { padding-bottom: 32px; }
+</style>
+</head>
+<body>
+
+<div class="phone-wrapper">
+  <div class="phone-screen">
+    <div class="notch"></div>
+
+    <!-- ===== HOME SCREEN ===== -->
+    <div class="screen active" id="screen-home">
+      <div class="screen-scroll">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+          </div>
+        </div>
+
+        <div class="home-header">
+          <div>
+            <div class="home-logo">WEDO<span>Connect</span></div>
+          </div>
+          <div class="header-actions">
+            <div class="notif-btn" onclick="showToast('🔔 3 new notifications')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <div class="notif-dot"></div>
+            </div>
+            <div class="avatar-sm" onclick="switchScreen('profile')">S</div>
+          </div>
+        </div>
+
+        <div class="greeting">
+          <h2>Good morning, Sarah! 👋</h2>
+          <p>Let's build, connect, and grow together.</p>
+        </div>
+
+        <div class="search-bar" onclick="showToast('🔍 Search coming soon!')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span>Search mentors, events, people...</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </div>
+
+        <div class="hero-banner" onclick="showToast('🌟 Ambassador Program — Apply Now!')">
+          <div class="hero-tag">Ambassador Program</div>
+          <h3>Lead. Inspire.<br>Empower.</h3>
+          <p>Join the WEDO Ambassador Program and create impact in your community.</p>
+          <div class="btn-white">Apply Now</div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Quick Access</div>
+            <div class="see-all" onclick="showToast('Showing all features')">See all</div>
+          </div>
+          <div class="quick-grid">
+            <div class="quick-item" onclick="switchScreen('mentors')">
+              <div class="quick-icon" style="background:#EEF2FF">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <span>Mentor Match</span>
+            </div>
+            <div class="quick-item" onclick="switchScreen('ai-coach')">
+              <div class="quick-icon" style="background:#F0FDF4">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+              </div>
+              <span>AI Coach</span>
+            </div>
+            <div class="quick-item" onclick="switchScreen('events')">
+              <div class="quick-icon" style="background:#FFF7ED">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <span>Events</span>
+            </div>
+            <div class="quick-item" onclick="showToast('🌐 Community loading...')">
+              <div class="quick-icon" style="background:#F5F3FF">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+              </div>
+              <span>Community</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Upcoming Event</div>
+            <div class="see-all" onclick="switchScreen('events')">See all</div>
+          </div>
+          <div class="event-card" onclick="showToast('📅 RSVP for WEDO Global Summit!')">
+            <div class="event-img">
+              <div class="event-date-badge">JUL<br>20-22</div>
+            </div>
+            <div class="event-body">
+              <div class="event-tag">WEDO Global Summit</div>
+              <h3>Empowering Women in Tech & Innovation</h3>
+              <div class="event-meta">
+                <div class="event-meta-row">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  July 20 – 22, 2026
+                </div>
+                <div class="event-meta-row">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  Toronto, Canada
+                </div>
+              </div>
+              <div class="event-footer">
+                <div class="attendees">
+                  <div class="avatar-stack">
+                    <div class="av" style="background:linear-gradient(135deg,#f093fb,#f5576c)"></div>
+                    <div class="av" style="background:linear-gradient(135deg,#4facfe,#00f2fe)"></div>
+                    <div class="av" style="background:linear-gradient(135deg,#43e97b,#38f9d7)"></div>
+                  </div>
+                  <span>+328 attending</span>
+                </div>
+                <div class="btn-bookmark" onclick="event.stopPropagation();showToast('🔖 Event saved!')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Recommended Mentors</div>
+            <div class="see-all" onclick="switchScreen('mentors')">See all</div>
+          </div>
+          <div class="mentors-scroll">
+            <div class="mentor-card-sm" onclick="switchScreen('mentors')">
+              <div class="match-badge">95% Match</div>
+              <div class="av-lg">P</div>
+              <h4>Priya Sharma</h4>
+              <p>CEO & Founder, Nexa AI</p>
+              <div class="tag-chip">AI & Machine Learning</div>
+              <button class="btn-view">View Profile</button>
+            </div>
+            <div class="mentor-card-sm" onclick="switchScreen('mentors')">
+              <div class="match-badge">92% Match</div>
+              <div class="av-lg" style="background:linear-gradient(135deg,#f093fb,#f5576c)">E</div>
+              <h4>Elena Rodriguez</h4>
+              <p>Venture Partner, Summit VC</p>
+              <div class="tag-chip">Funding & Growth</div>
+              <button class="btn-view">View Profile</button>
+            </div>
+            <div class="mentor-card-sm" onclick="switchScreen('mentors')">
+              <div class="match-badge">90% Match</div>
+              <div class="av-lg" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">A</div>
+              <h4>Aisha Johnson</h4>
+              <p>Product Leader, Google</p>
+              <div class="tag-chip">Product Strategy</div>
+              <button class="btn-view">View Profile</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="community-grid">
+            <div>
+              <div class="section-header">
+                <div class="section-title" style="font-size:15px">Community Feed</div>
+                <div class="see-all">See all</div>
+              </div>
+              <div class="feed-list">
+                <div class="feed-item" onclick="showToast('💬 Joining discussion...')">
+                  <div class="feed-header">
+                    <div class="feed-av">J</div>
+                    <div>
+                      <div class="feed-name">Jessica Lee</div>
+                      <div class="feed-time">2h ago</div>
+                    </div>
+                  </div>
+                  <div class="feed-tag discussion">Discussion</div>
+                  <div class="feed-topic">What's the biggest challenge you faced as a founder?</div>
+                  <div class="feed-stats">
+                    <div class="feed-stat">💬 24</div>
+                    <div class="feed-stat">❤️ 82</div>
+                  </div>
+                </div>
+                <div class="feed-item" onclick="showToast('💬 Joining discussion...')">
+                  <div class="feed-header">
+                    <div class="feed-av av2">E</div>
+                    <div>
+                      <div class="feed-name">Elena R.</div>
+                      <div class="feed-time">5h ago</div>
+                    </div>
+                  </div>
+                  <div class="feed-tag discussion">Discussion</div>
+                  <div class="feed-topic">How do you approach early-stage fundraising?</div>
+                  <div class="feed-stats">
+                    <div class="feed-stat">💬 16</div>
+                    <div class="feed-stat">❤️ 65</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="section-header">
+                <div class="section-title" style="font-size:15px">Trending</div>
+                <div class="see-all">See all</div>
+              </div>
+              <div class="trending-list">
+                <div class="trending-item" onclick="showToast('📈 Fundraising Strategies — 124 discussions')">
+                  <div class="trending-icon">📈</div>
+                  <div class="trending-info">
+                    <h5>Fundraising</h5>
+                    <p>124 discussions</p>
+                  </div>
+                  <div class="trending-arrow">↑</div>
+                </div>
+                <div class="trending-item" onclick="showToast('🧠 Women in AI — 98 discussions')">
+                  <div class="trending-icon">🧠</div>
+                  <div class="trending-info">
+                    <h5>Women in AI</h5>
+                    <p>98 discussions</p>
+                  </div>
+                  <div class="trending-arrow">↑</div>
+                </div>
+                <div class="trending-item" onclick="showToast('🤝 Finding Co-founders — 86 discussions')">
+                  <div class="trending-icon">🤝</div>
+                  <div class="trending-info">
+                    <h5>Co-founders</h5>
+                    <p>86 discussions</p>
+                  </div>
+                  <div class="trending-arrow up">↑</div>
+                </div>
+                <div class="trending-item" onclick="showToast('🎯 Product Market Fit — 75 discussions')">
+                  <div class="trending-icon">🎯</div>
+                  <div class="trending-info">
+                    <h5>PMF</h5>
+                    <p>75 discussions</p>
+                  </div>
+                  <div class="trending-arrow up">↑</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-coach-banner" onclick="switchScreen('ai-coach')">
+          <div class="ai-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2H7a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="12" r="1" fill="white"/><circle cx="15" cy="12" r="1" fill="white"/></svg>
+          </div>
+          <div class="text">
+            <h4>Need help with your startup today?</h4>
+            <p>Ask our AI Coach anything.</p>
+          </div>
+          <button class="btn-ask">Ask AI Coach</button>
+        </div>
+
+        <div style="height: 8px;"></div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchScreen('home')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22" fill="white" stroke="currentColor" stroke-width="0"/></svg>
+          Home
+        </div>
+        <div class="nav-item" onclick="switchScreen('events')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Events
+        </div>
+        <div class="nav-item" onclick="switchScreen('mentors')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Mentors
+        </div>
+        <div class="nav-item" onclick="switchScreen('ai-coach')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+          AI Coach
+        </div>
+        <div class="nav-item" onclick="switchScreen('profile')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profile
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== EVENTS SCREEN ===== -->
+    <div class="screen" id="screen-events">
+      <div class="screen-scroll">
+        <div class="screen-header">
+          <div class="back-btn" onclick="switchScreen('home')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </div>
+          <div class="title-block">
+            <h1>Summits & Events</h1>
+            <p>Discover global events, learn from experts.</p>
+          </div>
+          <div class="header-btns">
+            <div class="icon-btn" onclick="showToast('🔍 Search events')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <div class="icon-btn" onclick="showToast('🔽 Filter options')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-tabs">
+          <div class="tab active" onclick="setTab(this)">All Events</div>
+          <div class="tab" onclick="setTab(this)">Summits</div>
+          <div class="tab" onclick="setTab(this)">Workshops</div>
+          <div class="tab" onclick="setTab(this)">Networking</div>
+          <div class="tab" onclick="setTab(this)">Webinars</div>
+        </div>
+
+        <div class="featured-event" onclick="showToast('🎉 RSVP confirmed for WEDO Global Summit!')">
+          <div class="featured-event-inner">
+            <div class="featured-tag">Featured Summit</div>
+            <h2>WEDO Global Summit 2026</h2>
+            <div class="featured-meta">
+              <div class="featured-meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span style="color:rgba(255,255,255,0.7)">July 20 – 22, 2026</span>
+              </div>
+              <div class="featured-meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span style="color:rgba(255,255,255,0.7)">Toronto, Canada</span>
+              </div>
+            </div>
+            <div class="featured-attending">
+              <div class="avatar-stack">
+                <div class="av" style="background:linear-gradient(135deg,#f093fb,#f5576c)"></div>
+                <div class="av" style="background:linear-gradient(135deg,#4facfe,#00f2fe)"></div>
+                <div class="av" style="background:linear-gradient(135deg,#43e97b,#38f9d7)"></div>
+                <div class="av"></div>
+              </div>
+              <span style="color:rgba(255,255,255,0.7)">+328 attending</span>
+            </div>
+            <div class="featured-btns">
+              <button class="btn-rsvp" onclick="event.stopPropagation();showToast('✅ RSVP confirmed!')">RSVP Now</button>
+              <button class="btn-details" onclick="event.stopPropagation();showToast('📋 Viewing details...')">View Details</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat-item">
+            <h3>12+</h3>
+            <p>Upcoming Events</p>
+          </div>
+          <div class="stat-item">
+            <h3>8</h3>
+            <p>Countries</p>
+          </div>
+          <div class="stat-item">
+            <h3>10K+</h3>
+            <p>Women Connecting</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Upcoming Events</div>
+            <div class="see-all" onclick="showToast('Showing all 12+ events')">See all</div>
+          </div>
+
+          <div class="event-list-item" onclick="showToast('🍸 WEDO New York Networking Night — May 15!')">
+            <div class="event-list-img">
+              <div class="date-overlay">MAY<br>15</div>
+            </div>
+            <div class="event-list-body">
+              <h4>WEDO New York Networking Night</h4>
+              <p>Connect over drinks, share ideas, and build meaningful relationships.</p>
+              <div class="event-list-meta">
+                <span>📅 May 15, 2026 • 6:00 PM</span>
+                <span>📍 New York, USA</span>
+              </div>
+            </div>
+            <div class="event-list-actions">
+              <button class="btn-rsvp-sm" onclick="event.stopPropagation();showToast('✅ RSVP sent!')">RSVP</button>
+              <div class="btn-bookmark" onclick="event.stopPropagation();showToast('🔖 Saved!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="event-list-item" onclick="showToast('🚀 Founders Growth Workshop — June 5!')">
+            <div class="event-list-img" style="background:linear-gradient(135deg,#1e1b4b,#312e81)">
+              <div class="date-overlay">JUN<br>05</div>
+            </div>
+            <div class="event-list-body">
+              <h4>Founders Growth Workshop</h4>
+              <p>A hands-on workshop to scale your startup with expert guidance.</p>
+              <div class="event-list-meta">
+                <span>📅 June 5, 2026 • 2:00 PM</span>
+                <span>🌐 Virtual Event</span>
+              </div>
+            </div>
+            <div class="event-list-actions">
+              <button class="btn-rsvp-sm" onclick="event.stopPropagation();showToast('✅ RSVP sent!')">RSVP</button>
+              <div class="btn-bookmark" onclick="event.stopPropagation();showToast('🔖 Saved!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="event-list-item" onclick="showToast('🇬🇧 WEDO London Summit — June 18-19!')">
+            <div class="event-list-img" style="background:linear-gradient(135deg,#064e3b,#065f46)">
+              <div class="date-overlay">JUN<br>18</div>
+            </div>
+            <div class="event-list-body">
+              <h4>WEDO London Summit</h4>
+              <p>Learn, inspire, and connect with women founders across Europe.</p>
+              <div class="event-list-meta">
+                <span>📅 June 18–19, 2026</span>
+                <span>📍 London, UK</span>
+              </div>
+            </div>
+            <div class="event-list-actions">
+              <button class="btn-rsvp-sm" onclick="event.stopPropagation();showToast('✅ RSVP sent!')">RSVP</button>
+              <div class="btn-bookmark" onclick="event.stopPropagation();showToast('🔖 Saved!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">People You Should Meet</div>
+            <div class="see-all" onclick="switchScreen('mentors')">See all</div>
+          </div>
+          <div class="people-scroll">
+            <div class="person-card" onclick="switchScreen('mentors')">
+              <div class="person-av">P</div>
+              <h4>Priya Sharma</h4>
+              <p>CEO & Founder, Nexa AI</p>
+              <div class="attending-badge">Attending ✓</div>
+            </div>
+            <div class="person-card" onclick="switchScreen('mentors')">
+              <div class="person-av c2">E</div>
+              <h4>Elena Rodriguez</h4>
+              <p>Venture Partner, Summit VC</p>
+              <div class="attending-badge">Attending ✓</div>
+            </div>
+            <div class="person-card" onclick="switchScreen('mentors')">
+              <div class="person-av c3">A</div>
+              <h4>Aisha Johnson</h4>
+              <p>Product Lead, Google</p>
+              <div class="attending-badge">Attending ✓</div>
+            </div>
+            <div class="person-card" onclick="switchScreen('mentors')">
+              <div class="person-av c4">Em</div>
+              <h4>Emily Chen</h4>
+              <p>Marketing Dir., Notion</p>
+              <div class="attending-badge">Attending ✓</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section section-pb">
+          <div class="section-header">
+            <div class="section-title">Recommended For You</div>
+          </div>
+          <div class="category-grid">
+            <div class="category-item" onclick="showToast('💡 AI & Product Innovation — 9 Events')">
+              <div class="cat-icon">💡</div>
+              <h4>AI & Product Innovation</h4>
+              <p>9 Events</p>
+            </div>
+            <div class="category-item" onclick="showToast('💰 Fundraising & Finance — 6 Events')">
+              <div class="cat-icon">📊</div>
+              <h4>Fundraising & Finance</h4>
+              <p>6 Events</p>
+            </div>
+            <div class="category-item" onclick="showToast('🌱 Leadership & Growth — 8 Events')">
+              <div class="cat-icon">🌱</div>
+              <h4>Leadership & Growth</h4>
+              <p>8 Events</p>
+            </div>
+            <div class="category-item" onclick="showToast('📣 Marketing & Branding — 7 Events')">
+              <div class="cat-icon">📣</div>
+              <h4>Marketing & Branding</h4>
+              <p>7 Events</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item" onclick="switchScreen('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Home
+        </div>
+        <div class="nav-item active" onclick="switchScreen('events')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="white" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="white" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="white" stroke-width="2"/></svg>
+          Events
+        </div>
+        <div class="nav-item" onclick="switchScreen('mentors')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Mentors
+        </div>
+        <div class="nav-item" onclick="switchScreen('ai-coach')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+          AI Coach
+        </div>
+        <div class="nav-item" onclick="switchScreen('profile')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profile
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MENTORS SCREEN ===== -->
+    <div class="screen" id="screen-mentors">
+      <div class="screen-scroll">
+        <div class="screen-header">
+          <div class="back-btn" onclick="switchScreen('home')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </div>
+          <div class="title-block">
+            <h1>AI Mentor Match</h1>
+            <p>AI-powered recommendations based on your goals.</p>
+          </div>
+          <div class="icon-btn" onclick="showToast('✨ AI magic loading...')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+          </div>
+        </div>
+
+        <div class="profile-summary" onclick="switchScreen('profile')">
+          <div class="profile-summary-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div class="profile-summary-text">
+            <h4>Your Profile Summary</h4>
+            <p>AI · FinTech · Seed Stage · Fundraising<br>Looking for help in: Fundraising, Growth, Product Strategy</p>
+          </div>
+          <div class="profile-summary-edit">
+            ✏️ Edit
+          </div>
+        </div>
+
+        <div class="filter-tabs">
+          <div class="tab active" onclick="setTab(this)">All</div>
+          <div class="tab" onclick="setTab(this)">Fundraising</div>
+          <div class="tab" onclick="setTab(this)">Product</div>
+          <div class="tab" onclick="setTab(this)">Marketing</div>
+          <div class="tab" onclick="setTab(this)">AI</div>
+          <div class="tab" onclick="setTab(this)">Leadership</div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Top Matches for You</div>
+            <div class="see-all" style="color:var(--text-secondary)" onclick="showToast('ℹ️ Matches are based on your goals and experience')">Why these? ℹ️</div>
+          </div>
+
+          <!-- Priya -->
+          <div class="mentor-full-card">
+            <div class="mentor-card-header">
+              <div class="mentor-av">P<div class="online-dot"></div></div>
+              <div class="mentor-info">
+                <h3>Priya Sharma <span style="color:var(--blue);font-size:14px">✓</span></h3>
+                <div class="role">CEO & Founder at Nexa AI</div>
+                <div class="meta-row">
+                  <span>🏢 AI, Machine Learning</span>
+                  <span>⭐ 15+ yrs</span>
+                </div>
+                <div class="tags">
+                  <div class="tag">Fundraising</div>
+                  <div class="tag">AI Strategy</div>
+                  <div class="tag">Team Building</div>
+                </div>
+              </div>
+              <div class="match-score-block">
+                <div class="match-pill">95% Match</div>
+                <div class="score-circle">
+                  <svg width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#E5E7EB" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#10B981" stroke-width="6" stroke-dasharray="163.4" stroke-dashoffset="8.2" stroke-linecap="round"/>
+                  </svg>
+                  <div class="score-text">95%</div>
+                </div>
+                <div class="score-label">Match Score</div>
+              </div>
+            </div>
+            <div class="mentor-quote">
+              Priya has helped 60+ founders raise $50M+ and scale their AI startups.
+            </div>
+            <div class="mentor-card-actions">
+              <button class="btn-message" onclick="showToast('💬 Opening message with Priya...')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Message
+              </button>
+              <button class="btn-connect" onclick="showToast('🤝 Connection request sent to Priya!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                Connect
+              </button>
+            </div>
+          </div>
+
+          <!-- Elena -->
+          <div class="mentor-full-card">
+            <div class="mentor-card-header">
+              <div class="mentor-av m2">E<div class="online-dot"></div></div>
+              <div class="mentor-info">
+                <h3>Elena Rodriguez <span style="color:var(--blue);font-size:14px">✓</span></h3>
+                <div class="role">Venture Partner at Summit VC</div>
+                <div class="meta-row">
+                  <span>💼 Venture Capital, FinTech</span>
+                  <span>⭐ 12+ yrs</span>
+                </div>
+                <div class="tags">
+                  <div class="tag">Fundraising</div>
+                  <div class="tag">Go-to-Market</div>
+                  <div class="tag">FinTech</div>
+                </div>
+              </div>
+              <div class="match-score-block">
+                <div class="match-pill">92% Match</div>
+                <div class="score-circle">
+                  <svg width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#E5E7EB" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#10B981" stroke-width="6" stroke-dasharray="163.4" stroke-dashoffset="13.1" stroke-linecap="round"/>
+                  </svg>
+                  <div class="score-text">92%</div>
+                </div>
+                <div class="score-label">Match Score</div>
+              </div>
+            </div>
+            <div class="mentor-quote">
+              Elena has invested in 80+ startups and loves supporting early-stage founders.
+            </div>
+            <div class="mentor-card-actions">
+              <button class="btn-message" onclick="showToast('💬 Opening message with Elena...')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Message
+              </button>
+              <button class="btn-connect" onclick="showToast('🤝 Connection request sent to Elena!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                Connect
+              </button>
+            </div>
+          </div>
+
+          <!-- Aisha -->
+          <div class="mentor-full-card">
+            <div class="mentor-card-header">
+              <div class="mentor-av m3">A<div class="online-dot"></div></div>
+              <div class="mentor-info">
+                <h3>Aisha Johnson <span style="color:var(--blue);font-size:14px">✓</span></h3>
+                <div class="role">Product Leader at Google</div>
+                <div class="meta-row">
+                  <span>🚀 Product Mgmt, AI</span>
+                  <span>⭐ 10+ yrs</span>
+                </div>
+                <div class="tags">
+                  <div class="tag">Product Strategy</div>
+                  <div class="tag">Leadership</div>
+                  <div class="tag">AI</div>
+                </div>
+              </div>
+              <div class="match-score-block">
+                <div class="match-pill">89% Match</div>
+                <div class="score-circle">
+                  <svg width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#E5E7EB" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#10B981" stroke-width="6" stroke-dasharray="163.4" stroke-dashoffset="18" stroke-linecap="round"/>
+                  </svg>
+                  <div class="score-text">89%</div>
+                </div>
+                <div class="score-label">Match Score</div>
+              </div>
+            </div>
+            <div class="mentor-quote">
+              Aisha specializes in building and scaling products used by millions.
+            </div>
+            <div class="mentor-card-actions">
+              <button class="btn-message" onclick="showToast('💬 Opening message with Aisha...')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Message
+              </button>
+              <button class="btn-connect" onclick="showToast('🤝 Connection request sent to Aisha!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-match-info">
+          <div class="ai-icon-sm">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2H7a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/></svg>
+          </div>
+          <div class="text">
+            AI matches you with mentors who are most relevant to your goals and stage. <a href="#" onclick="showToast('ℹ️ AI matches based on your profile, goals, and industry')">Learn more about how it works →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item" onclick="switchScreen('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Home
+        </div>
+        <div class="nav-item" onclick="switchScreen('events')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Events
+        </div>
+        <div class="nav-item active" onclick="switchScreen('mentors')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Mentors
+        </div>
+        <div class="nav-item" onclick="switchScreen('ai-coach')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+          AI Coach
+        </div>
+        <div class="nav-item" onclick="switchScreen('profile')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profile
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AI COACH SCREEN ===== -->
+    <div class="screen" id="screen-ai-coach" style="background:#FAFBFF">
+      <div class="screen-header" style="background:#FAFBFF">
+        <div class="back-btn" onclick="switchScreen('home')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </div>
+        <div class="title-block">
+          <h1>AI Startup Coach</h1>
+          <p>Your personal AI assistant for startup advice.</p>
+        </div>
+        <div class="header-btns">
+          <div class="icon-btn" onclick="showToast('📂 Viewing chat history...')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="icon-btn" onclick="showToast('🔖 Chat saved!')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-area" id="chat-area">
+        <div class="bot-msg">
+          <div class="bot-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2H7a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="12" r="1" fill="#1A56FF"/><circle cx="15" cy="12" r="1" fill="#1A56FF"/></svg>
+          </div>
+          <div>
+            <div class="bot-bubble">
+              Hi Sarah! 👋 I'm here to help you grow your startup, improve your pitch, find opportunities, and connect with the right people.
+            </div>
+            <div class="bot-time">Just now</div>
+          </div>
+        </div>
+
+        <div class="user-msg">
+          <div>
+            <div class="user-bubble">How can I improve my investor pitch?</div>
+            <div class="user-time">10:30 AM</div>
+          </div>
+        </div>
+
+        <div class="bot-msg">
+          <div class="bot-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2H7a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="12" r="1" fill="#1A56FF"/><circle cx="15" cy="12" r="1" fill="#1A56FF"/></svg>
+          </div>
+          <div>
+            <div class="bot-bubble">
+              Great question! A strong investor pitch should be clear, compelling, and focused on impact. Here are key ways to improve yours:
+              <ul class="step-list">
+                <li><div class="step-num">1</div><div><strong>Start with a strong problem</strong>Show the real pain your target audience faces.</div></li>
+                <li><div class="step-num">2</div><div><strong>Present your unique solution</strong>Explain how your product is different and better.</div></li>
+                <li><div class="step-num">3</div><div><strong>Validate with data</strong>Use metrics, user feedback, or traction to build trust.</div></li>
+                <li><div class="step-num">4</div><div><strong>Highlight market opportunity</strong>Demonstrate the size of the market and why now.</div></li>
+                <li><div class="step-num">5</div><div><strong>Clear ask</strong>End with what you're raising and how the funds will be used.</div></li>
+              </ul>
+              <br>Would you like me to review your pitch deck?
+            </div>
+            <div class="bot-time">10:31 AM</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="try-section">
+        <h3>Try asking me anything</h3>
+        <div class="try-grid">
+          <div class="try-item" onclick="sendQuickMsg('Review my pitch deck')">
+            <div class="try-icon">📋</div>
+            <div class="try-text"><h5>Review my pitch deck</h5><p>Get feedback & suggestions</p></div>
+          </div>
+          <div class="try-item" onclick="sendQuickMsg('Find events for me')">
+            <div class="try-icon">📅</div>
+            <div class="try-text"><h5>Find events for me</h5><p>Discover relevant events</p></div>
+          </div>
+          <div class="try-item" onclick="sendQuickMsg('Write a networking message')">
+            <div class="try-icon">✉️</div>
+            <div class="try-text"><h5>Write a networking message</h5><p>For mentors or investors</p></div>
+          </div>
+          <div class="try-item" onclick="sendQuickMsg('Suggest mentors')">
+            <div class="try-icon">👩</div>
+            <div class="try-text"><h5>Suggest mentors</h5><p>Based on my goals</p></div>
+          </div>
+          <div class="try-item" onclick="sendQuickMsg('Help with my business model')">
+            <div class="try-icon">📊</div>
+            <div class="try-text"><h5>Help with my business model</h5><p>Improve and validate it</p></div>
+          </div>
+          <div class="try-item" onclick="sendQuickMsg('Analyze my startup idea')">
+            <div class="try-icon">📈</div>
+            <div class="try-text"><h5>Analyze my startup idea</h5><p>Get strengths & gaps</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-bar">
+        <input class="chat-input" id="chat-input" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <div class="mic-btn" onclick="showToast('🎤 Voice input...')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </div>
+        <button class="send-btn" onclick="sendMsg()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="disclaimer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        AI responses may be inaccurate. Please verify important information.
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item" onclick="switchScreen('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Home
+        </div>
+        <div class="nav-item" onclick="switchScreen('events')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Events
+        </div>
+        <div class="nav-item" onclick="switchScreen('mentors')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Mentors
+        </div>
+        <div class="nav-item active" onclick="switchScreen('ai-coach')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="12" r="1.5" fill="white"/><circle cx="15" cy="12" r="1.5" fill="white"/></svg>
+          AI Coach
+        </div>
+        <div class="nav-item" onclick="switchScreen('profile')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profile
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROFILE SCREEN ===== -->
+    <div class="screen" id="screen-profile">
+      <div class="screen-scroll">
+        <div class="profile-header">
+          <h1>Profile</h1>
+          <div class="icon-btn" onclick="showToast('⚙️ Settings')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+        </div>
+
+        <div class="profile-card">
+          <div class="profile-top">
+            <div class="profile-avatar">
+              S
+              <div class="cam-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+            </div>
+            <div class="profile-info">
+              <h2>Sarah Chen</h2>
+              <div class="role">Founder & CEO at Greenly</div>
+              <div class="location">📍 San Francisco, CA, USA</div>
+              <div class="link">🔗 linkedin.com/in/sarahchen</div>
+            </div>
+            <div class="edit-btn" onclick="showToast('✏️ Edit Profile')">Edit</div>
+          </div>
+          <div class="profile-bio">Building Greenly – making sustainable living simple and accessible for everyone.</div>
+          <div class="interest-tags">
+            <div class="interest-tag">🌿 Sustainability</div>
+            <div class="interest-tag">⚡ Clean Tech</div>
+            <div class="interest-tag">👩‍💼 Women Founder</div>
+          </div>
+        </div>
+
+        <div class="profile-strength">
+          <div class="strength-header">
+            <h4>Profile Strength</h4>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="strength-pct">85%</div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+          <div class="strength-bar"><div class="strength-fill"></div></div>
+          <div class="strength-tip">Add more details to get better mentor matches and opportunities.</div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-box" onclick="showToast('👥 128 Connections')">
+            <div class="stat-icon">👥</div>
+            <h3>128</h3>
+            <p>Connections</p>
+            <div class="delta">+12 this month</div>
+          </div>
+          <div class="stat-box" onclick="showToast('💬 23 Conversations')">
+            <div class="stat-icon">💬</div>
+            <h3>23</h3>
+            <p>Conversations</p>
+            <div class="delta">+5 this month</div>
+          </div>
+          <div class="stat-box" onclick="showToast('📅 8 Events Attended')">
+            <div class="stat-icon">📅</div>
+            <h3>8</h3>
+            <p>Events</p>
+            <div class="delta">+2 this month</div>
+          </div>
+          <div class="stat-box" onclick="showToast('🏅 4 Badges Earned')">
+            <div class="stat-icon">⭐</div>
+            <h3>4</h3>
+            <p>Badges</p>
+            <div class="delta" style="color:var(--blue)">View all</div>
+          </div>
+        </div>
+
+        <div class="menu-list">
+          <div class="menu-item" onclick="showToast('👤 My Information')">
+            <div class="menu-icon" style="background:#EEF2FF">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="menu-text">
+              <h4>My Information</h4>
+              <p>Personal details, bio, and links</p>
+            </div>
+            <div class="menu-arrow">›</div>
+          </div>
+          <div class="menu-item" onclick="showToast('🎯 My Goals')">
+            <div class="menu-icon" style="background:#ECFDF5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <div class="menu-text">
+              <h4>My Goals</h4>
+              <p>Career goals and startup milestones</p>
+            </div>
+            <div class="menu-arrow">›</div>
+          </div>
+          <div class="menu-item" onclick="showToast('🔖 Saved Mentors & People')">
+            <div class="menu-icon" style="background:#FFF7ED">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="menu-text">
+              <h4>Saved Mentors & People</h4>
+              <p>People you've saved or want to connect with</p>
+            </div>
+            <div class="menu-arrow">›</div>
+          </div>
+          <div class="menu-item" onclick="switchScreen('events')">
+            <div class="menu-icon" style="background:#F5F3FF">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="menu-text">
+              <h4>My Events</h4>
+              <p>Events you're attending or saved</p>
+            </div>
+            <div class="menu-arrow">›</div>
+          </div>
+          <div class="menu-item" onclick="showToast('📝 My Posts & Activity')">
+            <div class="menu-icon" style="background:#FEF2F2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="menu-text">
+              <h4>My Posts & Activity</h4>
+              <p>Your posts, comments, and likes</p>
+            </div>
+            <div class="menu-arrow">›</div>
+          </div>
+          <div class="menu-item" onclick="showToast('🏅 Badges & Achievements')">
+            <div class="menu-icon" style="background:#FFFBEB">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="menu-text">
+              <h4>Badges & Achievements</h4>
+              <p>Your WEDO Connect achievements</p>
+            </div>
+            <div class="menu-arrow">›</div>
+          </div>
+          <div class="menu-item" onclick="showToast('🔒 Privacy & Settings')">
+            <div class="menu-icon" style="background:#ECFDF5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="menu-text">
+              <h4>Privacy & Settings</h4>
+              <p>Manage your privacy and notifications</p>
+            </div>
+            <div class="menu-arrow">›</div>
+          </div>
+        </div>
+
+        <div class="upgrade-banner" onclick="showToast('👑 Upgrading to WEDO Connect Pro!')">
+          <div class="crown-icon">👑</div>
+          <div class="upgrade-text">
+            <h4>Upgrade to WEDO Connect Pro</h4>
+            <p>Unlock advanced features, more matches, and exclusive events.</p>
+          </div>
+          <button class="btn-upgrade" onclick="event.stopPropagation();showToast('🚀 Upgrading to Pro!')">Upgrade Now</button>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item" onclick="switchScreen('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Home
+        </div>
+        <div class="nav-item" onclick="switchScreen('events')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Events
+        </div>
+        <div class="nav-item" onclick="switchScreen('mentors')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Mentors
+        </div>
+        <div class="nav-item" onclick="switchScreen('ai-coach')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+          AI Coach
+        </div>
+        <div class="nav-item active" onclick="switchScreen('profile')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profile
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+      <span class="toast-icon" id="toast-icon">✅</span>
+      <span id="toast-msg">Action completed</span>
+    </div>
+
+  </div><!-- /phone-screen -->
+</div><!-- /phone-wrapper -->
+
+<script>
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const target = document.getElementById('screen-' + name);
+  if (target) {
+    target.style.display = 'flex';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { target.classList.add('active'); });
+    });
+    target.querySelector('.screen-scroll')?.scrollTo(0, 0);
+  }
+}
+
+function setTab(el) {
+  el.closest('.filter-tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+const aiReplies = {
+  'Review my pitch deck': 'Sure! Share your pitch deck and I\'ll give detailed feedback on structure, storytelling, and investor appeal. 📋',
+  'Find events for me': 'Based on your profile, I recommend: WEDO New York Networking Night (May 15) and Founders Growth Workshop (June 5)! 📅',
+  'Write a networking message': 'Here\'s a message template: "Hi [Name], I\'m Sarah, founder of Greenly. I love your work in [area] and would love to connect to discuss [topic]. Would you be open to a 20-minute call?" ✉️',
+  'Suggest mentors': 'Based on your goals, I recommend connecting with Priya Sharma (AI strategy & fundraising) and Elena Rodriguez (venture capital & FinTech). 👩‍💼',
+  'Help with my business model': 'For Greenly\'s sustainability model, consider: freemium app + premium partnerships with eco-brands + B2B sustainability consulting. 💼',
+  'Analyze my startup idea': 'Greenly strengths: clear mission, growing market, strong founder. Gaps: differentiation from competitors, monetization clarity, B2B vs B2C focus. 📊'
+};
+
+function sendQuickMsg(msg) {
+  addUserMsg(msg);
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addBotMsg(aiReplies[msg] || 'Great question! Let me help you with that. Tell me more about your specific needs. 🚀');
+  }, 1200);
+}
+
+function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addUserMsg(msg);
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addBotMsg(generateReply(msg));
+  }, 1500);
+}
+
+function generateReply(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('pitch') || m.includes('investor')) return 'A great investor pitch has 5 key elements: problem, solution, market size, traction, and your ask. Want me to review yours? 🎯';
+  if (m.includes('mentor') || m.includes('advice')) return 'Based on your profile, Priya Sharma (95% match) would be perfect for fundraising and AI strategy guidance! 👥';
+  if (m.includes('event') || m.includes('summit')) return 'The WEDO New York Networking Night on May 15 is a great fit for you! +328 women founders will be there. 🌟';
+  if (m.includes('fund') || m.includes('raise') || m.includes('money')) return 'For seed-stage fundraising, focus on: warm introductions, a strong deck, clear metrics, and target investors who focus on your space. 💰';
+  if (m.includes('grow') || m.includes('scale')) return 'Growth strategies for early-stage: focus on one channel, nail retention before acquisition, and leverage partnerships. 📈';
+  return 'That\'s a great question! As a sustainability-focused founder, you have a unique advantage. Let\'s dive deeper — what specific aspect would you like help with? 🌿';
+}
+
+function addUserMsg(msg) {
+  const area = document.getElementById('chat-area');
+  const now = new Date();
+  const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0') + ' ' + (now.getHours() >= 12 ? 'PM' : 'AM');
+  const div = document.createElement('div');
+  div.className = 'user-msg';
+  div.innerHTML = `<div><div class="user-bubble">${escHtml(msg)}</div><div class="user-time">${time}</div></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function addBotMsg(msg) {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = 'bot-msg';
+  div.innerHTML = `
+    <div class="bot-avatar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2H7a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="12" r="1" fill="#1A56FF"/><circle cx="15" cy="12" r="1" fill="#1A56FF"/></svg>
+    </div>
+    <div>
+      <div class="bot-bubble">${escHtml(msg)}</div>
+      <div class="bot-time">Just now</div>
+    </div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function showTyping() {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = 'bot-msg';
+  div.id = 'typing-indicator';
+  div.innerHTML = `
+    <div class="bot-avatar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A56FF" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2H7a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/></svg>
+    </div>
+    <div class="bot-bubble"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTyping() {
+  document.getElementById('typing-indicator')?.remove();
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Init
+switchScreen('home');
+</script>
+</body>
+</html>
